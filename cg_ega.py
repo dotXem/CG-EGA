@@ -204,8 +204,8 @@ class CG_EGA():
         ax1.plot(be["time"], be["y_pred"], label="BE", marker="o", mec="xkcd:orange", mfc="xkcd:orange", ls="")
         ax1.plot(ep["time"], ep["y_pred"], label="EP", marker="o", mec="xkcd:red", mfc="xkcd:red", ls="")
         ax1.set_title("Prediction VS ground truth as a function of time")
-        ax1.set_xlabel("time (" + str(self.freq) + "min)")
-        ax1.set_ylabel("glucose (mg/dL)")
+        ax1.set_xlabel("Time (min)")
+        ax1.set_ylabel("Glucose value (mg/dL)")
         ax1.legend()
 
         # P-EGA structure

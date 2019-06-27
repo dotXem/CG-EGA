@@ -1,5 +1,7 @@
 # CG-EGA
 
+[![DOI](https://zenodo.org/badge/194119067.svg)](https://zenodo.org/badge/latestdoi/194119067)
+
 This is the implementation of the Continuous Glucose-Error Grid Analysis (CG-EGA) adapted to glucose prediction in Python. It follows the description of Kovatchev *et al.* [1]. It gives a measure of the clinical acceptability of the glucose predictions made by a model.
 
 ## Getting Started

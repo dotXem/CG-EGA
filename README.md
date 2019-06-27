@@ -22,7 +22,11 @@ pandas 0.24.2
 >>> cg_ega = CG_EGA(y_true, y_pred, freq)
 >>> print("AP, BE, EP:", cg_ega.reduced())
 AP, BE, EP: (0.8367346938775511, 0.12653061224489795, 0.036734693877551024)
->>>cg_ega.plot(day=0)
+>>> cg_ega.plot(day=0)
 ```
 
+![cg_ega](cg_ega.png)
+
 ## References
+
+[1] Kovatchev, B. P., Gonder-Frederick, L. A., Cox, D. J., & Clarke, W. L. (2004). Evaluating the accuracy of continuous glucose-monitoring sensors: continuous glucose–error grid analysis illustrated by TheraSense Freestyle Navigator data. *Diabetes Care*, 27(8), 1922-192

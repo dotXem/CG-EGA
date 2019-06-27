@@ -25,7 +25,7 @@ AP, BE, EP: (0.8367346938775511, 0.12653061224489795, 0.036734693877551024)
 >>> cg_ega.plot(day=0)
 ```
 
-![cg_ega](cg_ega.png)
+![cg_ega](example.png)
 
 ## References
 

@@ -1,4 +1,4 @@
-# CG-EGA
+# CG-EGA Python Implementation
 
 [![DOI](https://zenodo.org/badge/194119067.svg)](https://zenodo.org/badge/latestdoi/194119067)
 

@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from tools.derivatives import derivatives
-from tools.filters import *
-from tools.misc import _all
-from p_ega import P_EGA
-from r_ega import R_EGA
+from .tools.derivatives import derivatives
+from .tools.filters import *
+from .tools.misc import _all
+from .p_ega import P_EGA
+from .r_ega import R_EGA
 
 
 class CG_EGA():

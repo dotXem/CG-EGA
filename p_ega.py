@@ -1,6 +1,6 @@
 import numpy as np
-from tools.derivatives import derivatives
-from tools.misc import _all, _any
+from .tools.derivatives import derivatives
+from .tools.misc import _all, _any
 
 
 class P_EGA():

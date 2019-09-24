@@ -45,8 +45,3 @@ AP, BE, EP: (0.8367346938775511, 0.12653061224489795, 0.036734693877551024)
 ## References
 
 [1] Kovatchev, B. P., Gonder-Frederick, L. A., Cox, D. J., & Clarke, W. L. (2004). Evaluating the accuracy of continuous glucose-monitoring sensors: continuous glucose–error grid analysis illustrated by TheraSense Freestyle Navigator data. *Diabetes Care*, 27(8), 1922-192
-
-## TODO
-
-* add diagonal line on R-EGA
-* add -1 on graph plotting because of pandas indexing

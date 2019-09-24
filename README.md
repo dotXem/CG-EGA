@@ -4,7 +4,7 @@
 
 This is the implementation of the Continuous Glucose-Error Grid Analysis (CG-EGA) adapted to glucose prediction in Python. It follows the description of Kovatchev *et al.* [1]. It gives a measure of the clinical acceptability of the glucose predictions made by a model.
 
-To cite, you can use:
+To cite, you can use: 
 ```
 @misc{debois2019CGEGA,
   author = {De Bois, Maxime},

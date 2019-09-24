@@ -1,5 +1,5 @@
 import numpy as np
-from cg_ega import CG_EGA
+from cg_ega.cg_ega import CG_EGA
 
 
 def main():

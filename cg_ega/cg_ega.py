@@ -186,7 +186,7 @@ class CG_EGA():
         return df[["time", "y_true", "y_pred", "dy_true", "dy_pred", "P_EGA", "R_EGA", "CG_EGA"]]
 
     def plot(self, day=0):
-        res = self.per_sample().ix[day * self.day_len:(day + 1) * self.day_len]
+        res = self.per_sample().ix[day * self.day_len:(day + 1) * self.day_len - 1]
 
         ap = res[res["CG_EGA"] == "AP"]
         be = res[res["CG_EGA"] == "BE"]
@@ -209,7 +209,7 @@ class CG_EGA():
         ax1.legend()
 
         # P-EGA structure
-        ax2.plot([0, 400], [0, 400], "-k")
+        ax2.plot([0, 400], [0, 400], "-k", linewidth=0.75)
         ax2.plot([58.33, 400], [58.33333 * 6 / 5, 400 * 6 / 5], "-k")
         ax2.plot([0, 58.33333], [70, 70], "-k")
         ax2.plot([70, 400], [56, 320], "-k")
@@ -230,8 +230,8 @@ class CG_EGA():
         ax2.plot([0, 70], [200, 200], "--k")
         ax2.plot([70, 400], [70 * 22 / 17 + 109.412, 400 * 22 / 17 + 109.412], "--k")
 
-        ax2.text(30, 15, "A")
-        ax2.text(20, 35, "A")
+        ax2.text(38, 12, "A")
+        ax2.text(12, 38, "A")
         ax2.text(375, 240, "B")
         ax2.text(260, 375, "B")
         ax2.text(150, 375, "C")
@@ -256,6 +256,7 @@ class CG_EGA():
         ax2.legend()
 
         # R-EGA structure
+        ax3.plot([-4, 4], [-4, 4], "-k", linewidth=0.75)
         ax3.plot([-4, -1, -1], [1, 1, 4], "-k")
         ax3.plot([-4, -3, 1, 1], [-1, -1, 3, 4], "-k")
         ax3.plot([-4, -2, 1, 2], [-2, -1, 2, 4], "-k")
@@ -263,7 +264,8 @@ class CG_EGA():
         ax3.plot([-1, -1, 3, 4], [-4, -3, 1, 1], "-k")
         ax3.plot([1, 1, 4], [-4, -1, -1], "-k")
 
-        ax3.text(-3.5, -3.5, "A")
+        ax3.text(-3.25, -3.75, "A")
+        ax3.text(-3.75, -3.25, "A")
         ax3.text(-1.35, -3.5, "B")
         ax3.text(-3.5, -1.35, "B")
         ax3.text(0, -3.5, "C")

@@ -12,7 +12,7 @@ To cite, you can use:
   year = {2019},
   publisher = {GitHub},
   journal = {GitHub repository},
-  note = {doi: \url{10.5281/zenodo.3258676}},
+  note = {doi: \url{10.5281/zenodo.3459485}},
   url = {https://github.com/dotXem/CG-EGA}
 }
 ```

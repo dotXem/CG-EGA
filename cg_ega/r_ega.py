@@ -81,12 +81,12 @@ class R_EGA():
 
         uD = _all([
             np.less_equal(dy_pred, 1),
-            np.greater_equal(dy_pred, -1),
+            np.greater(dy_pred, -1),
             np.greater(dy_pred, dy_true + 2)
         ])
 
         lD = _all([
-            np.less_equal(dy_pred, 1),
+            np.less(dy_pred, 1),
             np.greater_equal(dy_pred, -1),
             np.less(dy_pred, dy_true - 2)
         ])

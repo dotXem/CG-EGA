@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from .tools.derivatives import derivatives
 from .tools.filters import *
-from .tools.misc import _all
+from .tools.misc import _all, reshape_results, extract_columns_from_results
 from .p_ega import P_EGA
 from .r_ega import R_EGA
+
 
 
 class CG_EGA():
@@ -13,24 +13,24 @@ class CG_EGA():
         The Continuous Glucose-Error Grid Analysis (CG-EGA) gives a measure of the clinical acceptability of the glucose predictions. It analyzes both the
         prediction accuracy (through the P-EGA) and the predicted variation accuracy (R-EGA).
 
-        The implementation is taken from "Evaluating the accuracy of continuous glucose-monitoring sensors: continuous
-        glucose-error grid analysis illustrated by TheraSense Freestyle Navigator data.", Kovatchev et al., 2004.
+        The implementation has been made following "Evaluating the accuracy of continuous glucose-monitoring sensors:
+        continuous glucose-error grid analysis illustrated by TheraSense Freestyle Navigator data.", Kovatchev et al., 2004.
     """
 
-    def __init__(self, y_true, y_pred, freq):
+    day_len = 1440
+
+    def __init__(self, results, freq):
         """
         Instantiate the CG-EGA object.
-        :param y_true: ground truth of shape (1,-1)
-        :param y_pred: predictions of shape (1, -1)
+        :param results: dataframe with predictions and ground truths
         :param freq: prediction frequency in minutes (e.g., 5)
         """
-
+        self.results = reshape_results(results, freq)
         self.freq = freq
-        self.day_len = y_true.shape[1] - 1
-        self.p_ega = P_EGA(y_true, y_pred, freq).full()
-        self.r_ega = R_EGA(y_true, y_pred, freq).full()
-        self.dy_true, self.y_true = derivatives(y_true, self.freq)
-        self.dy_pred, self.y_pred = derivatives(y_pred, self.freq)
+        self.day_len = self.day_len // freq
+        self.p_ega = P_EGA(results, freq).full()
+        self.r_ega = R_EGA(results, freq).full()
+
 
     def full(self):
         """
@@ -40,7 +40,7 @@ class CG_EGA():
 
             :return: hypoglycemia full CG-EGA, euglycemia full CG-EGA, hyperglycemia full CG-EGA
         """
-        y_true, dy_true, y_pred, dy_pred = self.y_true, self.dy_true, self.y_pred, self.dy_pred
+        y_true, y_pred, dy_true, dy_pred = extract_columns_from_results(self.results)
         p_ega, r_ega = self.p_ega, self.r_ega
 
         # compute the glycemia regions
@@ -105,9 +105,10 @@ class CG_EGA():
             sum_eu = (AP_eu + BE_eu + EP_eu)
             sum_hyper = (AP_hyper + BE_hyper + EP_hyper)
 
-            AP_hypo, BE_hypo, EP_hypo = AP_hypo / sum_hypo, BE_hypo / sum_hypo, EP_hypo / sum_hypo
-            AP_eu, BE_eu, EP_eu = AP_eu / sum_eu, BE_eu / sum_eu, EP_eu / sum_eu
-            AP_hyper, BE_hyper, EP_hyper = AP_hyper / sum_hyper, BE_hyper / sum_hyper, EP_hyper / sum_hyper
+
+            [AP_hypo, BE_hypo, EP_hypo] = [AP_hypo / sum_hypo, BE_hypo / sum_hypo, EP_hypo / sum_hypo] if not sum_hypo == 0 else [np.nan, np.nan, np.nan]
+            [AP_eu, BE_eu, EP_eu] = [AP_eu / sum_eu, BE_eu / sum_eu, EP_eu / sum_eu] if not sum_eu == 0 else [np.nan, np.nan, np.nan]
+            [AP_hyper, BE_hyper, EP_hyper] = [AP_hyper / sum_hyper, BE_hyper / sum_hyper, EP_hyper / sum_hyper] if not sum_hyper == 0 else [np.nan, np.nan, np.nan]
 
         return AP_hypo, BE_hypo, EP_hypo, AP_eu, BE_eu, EP_eu, AP_hyper, BE_hyper, EP_hyper
 
@@ -129,7 +130,7 @@ class CG_EGA():
                                                     CG-EGA AP/BE/EP mark)
         """
 
-        y_true, dy_true, y_pred, dy_pred = self.y_true, self.dy_true, self.y_pred, self.dy_pred
+        y_true, y_pred, dy_true, dy_pred = extract_columns_from_results(self.results)
         p_ega, r_ega = self.p_ega, self.r_ega
 
         df = pd.DataFrame(data=np.c_[y_true, dy_true, y_pred, dy_pred, p_ega, r_ega])
@@ -144,9 +145,9 @@ class CG_EGA():
         df["time"] = (np.arange(len(df.index)) + 1) * self.freq
 
         for i in range(len(p_ega)):
-            p_ega_i = df.ix[i, 4:9].values.reshape(1, -1)
-            r_ega_i = df.ix[i, 9:17].values.reshape(1, -1)
-            y_true_i = df.ix[i, 0]
+            p_ega_i = df.iloc[i, 4:9].values.reshape(1, -1)
+            r_ega_i = df.iloc[i, 9:17].values.reshape(1, -1)
+            y_true_i = df.iloc[i, 0]
 
             cg_ega_i = np.dot(np.transpose(r_ega_i), p_ega_i)
 
@@ -155,39 +156,50 @@ class CG_EGA():
                 cg_ega_i = cg_ega_i[:, [0, 3, 4]]
 
                 if np.sum(cg_ega_i * filter_AP_hypo) == 1:
-                    df.ix[i, "CG_EGA"] = "AP"
+                    df.loc[i, "CG_EGA"] = "AP"
                 elif np.sum(cg_ega_i * filter_BE_hypo) == 1:
-                    df.ix[i, "CG_EGA"] = "BE"
+                    df.loc[i, "CG_EGA"] = "BE"
                 else:
-                    df.ix[i, "CG_EGA"] = "EP"
+                    df.loc[i, "CG_EGA"] = "EP"
 
             elif y_true_i <= 180:
                 # euglycemia
                 cg_ega_i = cg_ega_i[:, [0, 1, 2]]
 
                 if np.sum(cg_ega_i * filter_AP_eu) == 1:
-                    df.ix[i, "CG_EGA"] = "AP"
+                    df.loc[i, "CG_EGA"] = "AP"
                 elif np.sum(cg_ega_i * filter_BE_eu) == 1:
-                    df.ix[i, "CG_EGA"] = "BE"
+                    df.loc[i, "CG_EGA"] = "BE"
                 else:
-                    df.ix[i, "CG_EGA"] = "EP"
+                    df.loc[i, "CG_EGA"] = "EP"
             else:
                 # hyperglycemia
                 if np.sum(cg_ega_i * filter_AP_hyper) == 1:
-                    df.ix[i, "CG_EGA"] = "AP"
+                    df.loc[i, "CG_EGA"] = "AP"
                 elif np.sum(cg_ega_i * filter_BE_hyper) == 1:
-                    df.ix[i, "CG_EGA"] = "BE"
+                    df.loc[i, "CG_EGA"] = "BE"
                 else:
-                    df.ix[i, "CG_EGA"] = "EP"
+                    df.loc[i, "CG_EGA"] = "EP"
 
-            df.ix[i, "P_EGA"] = p_ega_labels[np.argmax(p_ega_i.ravel())]
-            df.ix[i, "R_EGA"] = r_ega_labels[np.argmax(r_ega_i.ravel())]
+            df.loc[i, "P_EGA"] = p_ega_labels[np.argmax(p_ega_i.ravel())]
+            df.loc[i, "R_EGA"] = r_ega_labels[np.argmax(r_ega_i.ravel())]
 
-        return df[["time", "y_true", "y_pred", "dy_true", "dy_pred", "P_EGA", "R_EGA", "CG_EGA"]]
+        df.index = pd.notnull(self.results).all(1).to_numpy().nonzero()[0]
+        df_nan = pd.concat([
+            self.results.copy().reset_index().rename(columns={"index": "datetime"}),
+            df.loc[:, ["CG_EGA", "P_EGA", "R_EGA"]]
+        ], axis=1)
+
+        return df_nan
 
     def plot(self, day=0):
-        res = self.per_sample().ix[day * self.day_len:(day + 1) * self.day_len - 1]
-
+        """
+        Plot the given day predictions and CG-EGA
+        :param day: (int) number of the day for which to plot the predictions and CG-EGA
+        :return: /
+        """
+        res = self.per_sample().iloc[day * self.day_len:(day + 1) * self.day_len - 1]
+        pd.plotting.register_matplotlib_converters()
         ap = res[res["CG_EGA"] == "AP"]
         be = res[res["CG_EGA"] == "BE"]
         ep = res[res["CG_EGA"] == "EP"]
@@ -198,11 +210,11 @@ class CG_EGA():
         ax3 = f.add_subplot(224)
 
         # prediction VS truth against time
-        ax1.plot(res["time"], res["y_true"], "k", label="y_true")
-        ax1.plot(res["time"], res["y_pred"], "--k", label="y_pred")
-        ax1.plot(ap["time"], ap["y_pred"], label="AP", marker="o", mec="xkcd:green", mfc="xkcd:green", ls="")
-        ax1.plot(be["time"], be["y_pred"], label="BE", marker="o", mec="xkcd:orange", mfc="xkcd:orange", ls="")
-        ax1.plot(ep["time"], ep["y_pred"], label="EP", marker="o", mec="xkcd:red", mfc="xkcd:red", ls="")
+        ax1.plot(res["datetime"], res["y_true"], "k", label="y_true")
+        ax1.plot(res["datetime"], res["y_pred"], "--k", label="y_pred")
+        ax1.plot(ap["datetime"], ap["y_pred"], label="AP", marker="o", mec="xkcd:green", mfc="xkcd:green", ls="")
+        ax1.plot(be["datetime"], be["y_pred"], label="BE", marker="o", mec="xkcd:orange", mfc="xkcd:orange", ls="")
+        ax1.plot(ep["datetime"], ep["y_pred"], label="EP", marker="o", mec="xkcd:red", mfc="xkcd:red", ls="")
         ax1.set_title("Prediction VS ground truth as a function of time")
         ax1.set_xlabel("Time (min)")
         ax1.set_ylabel("Glucose value (mg/dL)")

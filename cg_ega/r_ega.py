@@ -1,6 +1,5 @@
 import numpy as np
-from .tools.derivatives import derivatives
-from .tools.misc import _all, _any
+from .tools.misc import _all, _any, reshape_results, extract_columns_from_results
 
 
 class R_EGA():
@@ -13,17 +12,15 @@ class R_EGA():
         glucose-error grid analysis illustrated by TheraSense Freestyle Navigator data.", Kovatchev et al., 2004.
     """
 
-    def __init__(self, y_true, y_pred, freq):
+    def __init__(self, results, freq):
         """
         Instantiate the P-EGA object.
-        :param y_true: ground truth of shape (1,-1)
-        :param y_pred: predictions of shape (1, -1)
+        :param results: dataframe with predictions and ground truths
         :param freq: prediction frequency in minutes (e.g., 5)
         """
 
         self.freq = freq
-        self.dy_true, self.y_true = derivatives(y_true, self.freq)
-        self.dy_pred, self.y_pred = derivatives(y_pred, self.freq)
+        self.results = reshape_results(results, self.freq)
 
     def full(self):
         """
@@ -32,7 +29,7 @@ class R_EGA():
 
             :return: numy array of shape (number of predictions, 8)
         """
-        y_true, dy_true, y_pred, dy_pred = self.y_true, self.dy_true, self.y_pred, self.dy_pred
+        y_true, y_pred, dy_true, dy_pred = extract_columns_from_results(self.results)
 
         A = _any([
             _all([  # upper and lower
@@ -81,12 +78,12 @@ class R_EGA():
 
         uD = _all([
             np.less_equal(dy_pred, 1),
-            np.greater(dy_pred, -1),
+            np.greater_equal(dy_pred, -1),
             np.greater(dy_pred, dy_true + 2)
         ])
 
         lD = _all([
-            np.less(dy_pred, 1),
+            np.less_equal(dy_pred, 1),
             np.greater_equal(dy_pred, -1),
             np.less(dy_pred, dy_true - 2)
         ])
@@ -102,3 +99,11 @@ class R_EGA():
         ])
 
         return np.concatenate([A, B, uC, lC, uD, lD, uE, lE], axis=1)
+
+    def mean(self):
+        return np.mean(self.full(), axis=0)
+
+    def a_plus_b(self):
+        full = self.full()
+        a_plus_b = full[:, 0] + full[:, 1]
+        return np.sum(a_plus_b) / len(a_plus_b)

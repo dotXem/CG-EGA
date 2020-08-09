@@ -32,9 +32,11 @@ pandas 0.24.2
 
 ```python
 >>> from cg_ega import CG_EGA
->>> y_true, y_pred = np.load("example.npy")
+>>> import pandas as pd
 >>> freq = 5
->>> cg_ega = CG_EGA(y_true, y_pred, freq)
+>>> y_true, y_pred = np.load("example.npy")
+>>> results = pd.DataFrame(data = np.c_[y_true.reshape(-1,1), y_pred.reshape(-1,1)], columns=["y_true","y_pred"])
+>>> cg_ega = CG_EGA(results, freq)
 >>> print("AP, BE, EP:", cg_ega.reduced())
 AP, BE, EP: (0.8367346938775511, 0.12653061224489795, 0.036734693877551024)
 >>> cg_ega.plot(day=0)
